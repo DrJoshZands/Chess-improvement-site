@@ -1,0 +1,70 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Student {
+  id                 String          @id @default(cuid())
+  name               String
+  rating             Int?
+  goals              String?
+  timeBudgetDaily    Int? // in minutes
+  timeBudgetWeekly   Int? // in minutes
+  schedulePreference SchedulePreference?
+  weaknesses         Json? // Array of SkillTag
+  targets            Json? // KPIs
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  plannedTasks       PlannedTask[]
+  reportFindings     ReportFinding[]
+}
+
+model TaskTemplate {
+  id           String        @id @default(cuid())
+  title        String
+  skillTags    Json // Array of SkillTag
+  durationMins Int
+  resourceUrl  String?
+  instructions String?
+  plannedTasks PlannedTask[]
+}
+
+model PlannedTask {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  date        DateTime
+  templateId  String?
+  template    TaskTemplate? @relation(fields: [templateId], references: [id])
+  customTitle String?
+  skillTags   Json // Array of SkillTag
+  durationMins Int
+  status      TaskStatus    @default(TODO)
+  notes       String?
+}
+
+model ReportFinding {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id])
+  source       String // "screenshot" or "manual"
+  text         String
+  mappedSkills Json // Array of SkillTag
+  severity     Int // 1-5
+  createdAt    DateTime @default(now())
+}
+
+enum SchedulePreference {
+  DAILY
+  WEEKLY
+}
+
+enum TaskStatus {
+  TODO
+  DONE
+  SKIPPED
+}
